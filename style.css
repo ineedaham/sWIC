@@ -11,3 +11,12 @@ body {  /*what the user sees*/
 canvas {    /*here is the styling for the canvas. just a simple border*/
     border: 3px solid rgb(0, 255, 0);
 }
+
+p { /*here is the styling for the paragraph elements*/
+    color: #000000;             /*text color*/
+    font-size: 18px;
+    font-family: sans-serif;
+    text-align: center;
+    line-height: 1.5;           /*spacing between lines*/
+    margin-bottom: 20px;        /*some space after each paragraph*/
+}
