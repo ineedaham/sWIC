@@ -1,1 +1,13 @@
+/*this is a comment in css*/
 
+/*let's style the page*/
+body {  /*what the user sees*/
+    background-color: #00ffaa;
+    color: #7a7a7a;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+canvas {    /*here is the styling for the canvas. just a simple border*/
+    border: 3px solid rgb(0, 255, 0);
+}
