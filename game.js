@@ -3,16 +3,58 @@
 // constant variables
 const canvas = document.getElementById("game"); // here is the fabeled canvas!
 const ctx = canvas.getContext("2d");    // get the context for our canvas. i am NOT making a 3d game
+const keys = {};    // keyboard input
 
-// variables - might as well define the starting values now
-let playerX = 50;
-let playerY = 50;
+// variables
 let playerSize = 40;    // defines how wide/tall the sprite is
+let playerX = 50;                               // player position
+let playerY = canvas.height - 2 * playerSize;   // ^~~~~~~~~~~~~~^
+let vertVelo = 0;   // vertical velocity
+let inAir = false;  // player is in the air
+
+// listen for key events for our controls
+document.addEventListener("keydown", function(event) {
+    keys[event.code] = true;
+
+    // keep the page from scrolling
+    if (event.code === "ArrowUp" || event.code === "ArrowDown") {
+        event.preventDefault();
+    }
+});
+
+document.addEventListener("keyup", function(event) {
+    keys[event.code] = false;
+});
+
+// this is where we will deal with keyboard input for movement
+function movement() {
+    if ((keys["KeyA"] || keys["ArrowLeft"]) && playerX > 0) {
+        playerX-=5;
+    };
+    if ((keys["KeyD"] || keys["ArrowRight"]) && playerX < canvas.width - playerSize) {
+        playerX+=5;
+    };
+    if ((keys["KeyW"] || keys["ArrowUp"]) && !inAir) {
+        vertVelo = 20;
+        inAir = true;
+    };
+}
 
 // this is where game updates (eg physics) will be calc'd
 // (just so you know, calc is short for calculator)
 function update() {
-    // later
+    // let the player move
+    movement();
+
+    // gravity!
+    if (playerY - vertVelo * 0.5 < canvas.height - playerSize) {
+        playerY-=vertVelo * 0.5;
+    } else {
+        inAir = false;
+    }
+
+    // update vertical velocity
+    vertVelo--;
 }
 
 // how can we see?? thank goodness for our handy draw function...
