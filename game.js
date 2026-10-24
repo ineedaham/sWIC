@@ -1,9 +1,20 @@
 // balright! it is time... to make the platformer!!! :3
 
+// get level data
+import {
+    Level, Obstacle
+} from "./world.js";
+
 // constant variables
 const canvas = document.getElementById("game"); // here is the fabeled canvas!
 const ctx = canvas.getContext("2d");    // get the context for our canvas. i am NOT making a 3d game
 const keys = {};    // keyboard input
+const levels = [    // level data
+    new Level(canvas, [
+        new Obstacle(200, 390, 30, 60),
+        new Obstacle(350, 360, 40, 90),
+    ])
+];
 
 // variables
 let playerSize = 40;    // defines how wide/tall the sprite is
@@ -11,6 +22,8 @@ let playerX = 50;                               // player position
 let playerY = canvas.height - 2 * playerSize;   // ^~~~~~~~~~~~~~^
 let vertVelo = 0;   // vertical velocity
 let inAir = false;  // player is in the air
+let currentLevelIndex = 0;
+let currentLevel = levels[currentLevelIndex];
 
 // listen for key events for our controls
 document.addEventListener("keydown", function(event) {
@@ -25,6 +38,22 @@ document.addEventListener("keydown", function(event) {
 document.addEventListener("keyup", function(event) {
     keys[event.code] = false;
 });
+
+// draw levels
+function drawLevel() {
+    for (const obstacle of currentLevel.obstacles) {    // draw obstacles
+        obstacle.draw(ctx);
+    }
+    currentLevel.checkpoint.draw(ctx);
+}
+
+// check for if player is in air
+// function checkAir() {
+//     return (
+//         playerY - vertVelo * 0.5 < canvas.height - playerSize ||
+//         playerY - 
+//     );
+// }
 
 // this is where we will deal with keyboard input for movement
 function movement() {
@@ -70,6 +99,9 @@ function draw() {
     // draw our player... jynxzi <3
     ctx.fillStyle = "red";
     ctx.fillRect(playerX, playerY, playerSize, playerSize);
+
+    // draw the current level
+    drawLevel();
 }
 
 // time for the code to run
