@@ -24,6 +24,8 @@ export class Checkpoint {
     constructor(canvas) {
         this.x = canvas.width - 50;
         this.y = canvas.height - 50;
+        this.width = 50;
+        this.height = 50;
         addBounds(this, this.x, this.y, this.width, this.height);
     }
 

@@ -16,20 +16,32 @@ const levels = [    // level data
     new Level(canvas, [
         new Obstacle(200, 390, 30, 60),
         new Obstacle(350, 360, 200, 90),
+    ]),
+    new Level(canvas, [
+        new Obstacle(150, 250, 40, 40),
+        new Obstacle(300, 320, 50, 50),
     ])
 ];
 
 // variables
 let playerSize = 40;    // defines how wide/tall the sprite is
-let playerX = 50;                               // player position
-let playerY = canvas.height - 4 * playerSize;   // ^~~~~~~~~~~~~~^
-let vertVelo = 0;   // vertical velocity
+let playerX;    // player position
+let playerY;    // ^~~~~~~~~~~~~~^
+let vertVelo;   // vertical velocity
 let vertStep = 1;   // step of velocity
 let updScale = 0.5; // vertical velocity update scale
 let horiVelo = 5;   // horizontal velocity magnitude
-let inAir = false;  // player is in the air
+let inAir;  // player is in the air
 let currentLevelIndex = 0;
 let currentLevel = levels[currentLevelIndex];
+
+// initialize player
+function initPlayer() {
+    playerX = 50;
+    playerY = canvas.height - 4 * playerSize;
+    vertVelo = 0;
+    inAir = true;
+}
 
 // listen for key events for our controls
 document.addEventListener("keydown", function(event) {
@@ -53,12 +65,24 @@ function drawLevel() {
     currentLevel.checkpoint.draw(ctx);
 }
 
+// check for checkpoint reached
+function checkpoint() {
+    return (playerX + playerSize >= currentLevel.checkpoint.boundX.min && playerX <= currentLevel.checkpoint.boundX.max && playerY + playerSize >= currentLevel.checkpoint.boundY.min && playerY <= currentLevel.checkpoint.boundY.max);
+}
+
 // check for if player is in air
 function checkAir() {
-    const nextPlayerY = playerY - (vertVelo - vertStep) * updScale; // next player y position
+    if (vertVelo > 0) {     // if user hits obstacle on their top
+        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && (playerY - (vertVelo - vertStep) * updScale) <= obstacle.boundY.max && playerY >= obstacle.boundY.max);
+        if (hitObstacle) {  // stop user
+            playerY = hitObstacle.boundY.max;
+            vertVelo = 0;
+        }
+    }
+
     if (vertVelo <= 0) {    // only check if player is falling or still
         // only look for an obstacle if player overlaps horizontally, player bottom is at or above the top, and player bottom will pass/reach the top this frame
-        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY + playerSize <= obstacle.boundY.min && nextPlayerY + playerSize >= obstacle.boundY.min);
+        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY + playerSize <= obstacle.boundY.min && (playerY - (vertVelo - vertStep) * updScale) + playerSize >= obstacle.boundY.min);
         if (hitObstacle) {  // on an obstacle
             playerY = hitObstacle.boundY.min - playerSize;
             return true;
@@ -66,7 +90,7 @@ function checkAir() {
     }
 
     // check for if player will land on the ground
-    if (nextPlayerY > canvas.height - playerSize) { // on the ground
+    if ((playerY - (vertVelo - vertStep) * updScale) > canvas.height - playerSize) { // on the ground
         playerY = canvas.height - playerSize;
         return true;
     }
@@ -90,7 +114,7 @@ function movement() {
     }
 }
 
-// this is where game updates (eg physics) will be calc'd
+// this is where game updates (eg physics, level progression) will be calc'd
 // (just so you know, calc is short for calculator)
 function update() {
     // let the player move
@@ -103,6 +127,13 @@ function update() {
         playerY-=vertVelo * updScale;
     } else {
         vertVelo = 0;
+    }
+
+    // check for level completion
+    if (checkpoint()) {
+        currentLevelIndex++;
+        currentLevel = levels[currentLevelIndex];
+        initPlayer();
     }
 }
 
@@ -123,6 +154,9 @@ function draw() {
     // draw the current level
     drawLevel();
 }
+
+// first initilization
+initPlayer();
 
 // time for the code to run
 function gameLoop() {
