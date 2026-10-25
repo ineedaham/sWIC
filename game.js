@@ -1,8 +1,11 @@
 // balright! it is time... to make the platformer!!! :3
 
-// get level data
+// dependencies
 import {
-    Level, Obstacle
+    Level
+} from "./level.js"
+import {
+    Obstacle
 } from "./world.js";
 
 // constant variables
@@ -12,15 +15,18 @@ const keys = {};    // keyboard input
 const levels = [    // level data
     new Level(canvas, [
         new Obstacle(200, 390, 30, 60),
-        new Obstacle(350, 360, 40, 90),
+        new Obstacle(350, 360, 200, 90),
     ])
 ];
 
 // variables
 let playerSize = 40;    // defines how wide/tall the sprite is
 let playerX = 50;                               // player position
-let playerY = canvas.height - 2 * playerSize;   // ^~~~~~~~~~~~~~^
+let playerY = canvas.height - 4 * playerSize;   // ^~~~~~~~~~~~~~^
 let vertVelo = 0;   // vertical velocity
+let vertStep = 1;   // step of velocity
+let updScale = 0.5; // vertical velocity update scale
+let horiVelo = 5;   // horizontal velocity magnitude
 let inAir = false;  // player is in the air
 let currentLevelIndex = 0;
 let currentLevel = levels[currentLevelIndex];
@@ -48,25 +54,40 @@ function drawLevel() {
 }
 
 // check for if player is in air
-// function checkAir() {
-//     return (
-//         playerY - vertVelo * 0.5 < canvas.height - playerSize ||
-//         playerY - 
-//     );
-// }
+function checkAir() {
+    const nextPlayerY = playerY - (vertVelo - vertStep) * updScale; // next player y position
+    if (vertVelo <= 0) {    // only check if player is falling or still
+        // only look for an obstacle if player overlaps horizontally, player bottom is at or above the top, and player bottom will pass/reach the top this frame
+        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY + playerSize <= obstacle.boundY.min && nextPlayerY + playerSize >= obstacle.boundY.min);
+        if (hitObstacle) {  // on an obstacle
+            playerY = hitObstacle.boundY.min - playerSize;
+            return true;
+        }
+    }
+
+    // check for if player will land on the ground
+    if (nextPlayerY > canvas.height - playerSize) { // on the ground
+        playerY = canvas.height - playerSize;
+        return true;
+    }
+
+    return false;
+}
 
 // this is where we will deal with keyboard input for movement
 function movement() {
-    if ((keys["KeyA"] || keys["ArrowLeft"]) && playerX > 0) {
-        playerX-=5;
-    };
-    if ((keys["KeyD"] || keys["ArrowRight"]) && playerX < canvas.width - playerSize) {
-        playerX+=5;
-    };
-    if ((keys["KeyW"] || keys["ArrowUp"]) && !inAir) {
+    // move left if key is held, not at left canvas bound, no obstacle is in the way (no vertical overlap), obstacle right side within reach after moving, not passed left side)
+    if ((keys["KeyA"] || keys["ArrowLeft"]) && !currentLevel.obstacles.some(obstacle => playerY + playerSize > obstacle.boundY.min && playerY < obstacle.boundY.max && playerX - horiVelo < obstacle.boundX.max && playerX > obstacle.boundX.min)) {
+        playerX = Math.max(0, playerX - horiVelo);  // player can't leave canvas bounds
+    }
+    // move right if key is held, not at right canvas bound, no obstacle is in the way (no vertical overlap), obstacle left side within reach after moving, not passed right side)
+    if ((keys["KeyD"] || keys["ArrowRight"]) && !currentLevel.obstacles.some(obstacle => playerY < obstacle.boundY.max && playerY > obstacle.boundY.min - playerSize && playerX + horiVelo > obstacle.boundX.min - playerSize && playerX < obstacle.boundX.max)) {
+        playerX = Math.min(canvas.width - playerSize, playerX + horiVelo);  // same as above
+    }
+    if ((keys["KeyW"] || keys["ArrowUp"]) && !inAir) {  // jump into the air
         vertVelo = 20;
         inAir = true;
-    };
+    }
 }
 
 // this is where game updates (eg physics) will be calc'd
@@ -76,14 +97,13 @@ function update() {
     movement();
 
     // gravity!
-    if (playerY - vertVelo * 0.5 < canvas.height - playerSize) {
-        playerY-=vertVelo * 0.5;
+    inAir = !checkAir();
+    if (inAir) {
+        vertVelo--;
+        playerY-=vertVelo * updScale;
     } else {
-        inAir = false;
+        vertVelo = 0;
     }
-
-    // update vertical velocity
-    vertVelo--;
 }
 
 // how can we see?? thank goodness for our handy draw function...
