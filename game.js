@@ -12,6 +12,7 @@ import {
 const canvas = document.getElementById("game"); // here is the fabeled canvas!
 const ctx = canvas.getContext("2d");    // get the context for our canvas. i am NOT making a 3d game
 const keys = {};    // keyboard input
+const music = new Audio("song.wav");
 const levels = [    // level data
     new Level(canvas, [
         new Obstacle(200, 390, 30, 60),
@@ -165,5 +166,9 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
+
+// init music
+music.loop = true;
+music.play();
 
 gameLoop();
