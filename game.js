@@ -15,12 +15,20 @@ const keys = {};    // keyboard input
 const music = new Audio("song.wav");
 const levels = [    // level data
     new Level(canvas, [
-        new Obstacle(200, 390, 30, 60),
-        new Obstacle(350, 360, 200, 90),
+        new Obstacle(200, 350, 150, 50),
+        new Obstacle(450, 350, 150, 50),
     ]),
     new Level(canvas, [
-        new Obstacle(150, 250, 40, 40),
-        new Obstacle(300, 320, 50, 50),
+        new Obstacle(150, 250, 50, 50),
+        new Obstacle(300, 325, 50, 50),
+        new Obstacle(300, 175, 50, 50),
+        new Obstacle(375, 225, 50, 175),
+    ]),
+    new Level (canvas, [
+        new Obstacle(300, 375, 50, 25),
+        new Obstacle(400, 325, 50, 75),
+        new Obstacle(500, 275, 50, 125),
+        new Obstacle(600, 200, 50, 200),
     ])
 ];
 
@@ -113,6 +121,9 @@ function movement() {
         vertVelo = 20;
         inAir = true;
     }
+    if (keys["KeyR"]) { // reset
+        initPlayer();
+    }
 }
 
 // this is where game updates (eg physics, level progression) will be calc'd
@@ -131,10 +142,12 @@ function update() {
     }
 
     // check for level completion
-    if (checkpoint()) {
+    if (checkpoint() && levels.length != currentLevelIndex + 1) {
         currentLevelIndex++;
         currentLevel = levels[currentLevelIndex];
         initPlayer();
+    } else if (levels.length === currentLevelIndex + 1) {
+        ;
     }
 }
 
