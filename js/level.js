@@ -1,7 +1,7 @@
 // dependencies
 import {
     Checkpoint
-} from "./world.js"
+} from "./world.js";
 import {
     addBounds
 } from "./addBounds.js";
