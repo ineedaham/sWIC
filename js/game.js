@@ -19,29 +19,39 @@ const ctx         = canvas.getContext("2d");            // get the context for o
 const keys        = {};                                 // keyboard input
 const music       = new Audio("assets/song.wav");       // beautiful song <3
 const jump        = new Audio("assets/jump.wav");       // jump sound
+const boing       = new Audio("assets/boing.wav");      // jump obstacle sound
 const levels      = [                                   // level data - i need to move this somewhere else
     new Level(canvas, [
-        new Obstacle(200, 350, 150, 50, false),
-        new Obstacle(350, 350, 100, 50, true),
-        new Obstacle(450, 350, 150, 50, false),
+        new Obstacle(200, 350, 150, 50, false, false),
+        new Obstacle(350, 350, 100, 50, true, false),
+        new Obstacle(450, 350, 150, 50, false, false),
     ], [
         new Text("Level 1", 20, 40, 30, "Arial", "black"),
+        new Text("Lava - deadly", 312, 325, 30, "Arial", "black"),
     ]),
     new Level(canvas, [
-        new Obstacle(150, 250, 50, 50, false),
-        new Obstacle(300, 325, 50, 50, false),
-        new Obstacle(300, 175, 50, 50, false),
-        new Obstacle(375, 225, 50, 175, true),
+        new Obstacle(150, 250, 50, 50, false, false),
+        new Obstacle(300, 325, 50, 50, false, false),
+        new Obstacle(300, 175, 50, 50, false, false),
+        new Obstacle(375, 225, 50, 175, true, false),
     ], [
         new Text("Level 2", 20, 40, 30, "Arial", "black"),
     ]),
     new Level (canvas, [
-        new Obstacle(300, 375, 50, 25, false),
-        new Obstacle(400, 325, 50, 75, false),
-        new Obstacle(500, 275, 50, 125, false),
-        new Obstacle(600, 200, 50, 200, false),
+        new Obstacle(300, 375, 50, 25, false, false),
+        new Obstacle(400, 325, 50, 75, false, false),
+        new Obstacle(500, 275, 50, 125, false, false),
+        new Obstacle(600, 200, 50, 200, false, false),
     ], [
         new Text("Level 3", 20, 40, 30, "Arial", "black"),
+    ]),
+    new Level (canvas, [
+        new Obstacle(0, 350, 250, 50, false, false),
+        new Obstacle(250, 350, 100, 50, false, true),
+        new Obstacle(350, 350, 100, 50, true, false),
+    ], [
+        new Text("Level 4", 20, 40, 30, "Arial", "black"),
+        new Text("Jump obstacle", 200, 325, 30, "Arial", "black"),
     ])
 ];
 
@@ -54,7 +64,7 @@ let vertStep = 1;       // step of velocity
 let updScale = 0.5;     // vertical velocity update scale
 let horiVelo = 5;       // horizontal velocity magnitude
 let inAir;              // player is in the air
-let currentLevelIndex = 0;
+let currentLevelIndex = 3;
 let currentLevel = levels[currentLevelIndex];
 
 // initialize player
@@ -149,7 +159,6 @@ function movement() {
     if ((keys["KeyW"] || keys["ArrowUp"]) && !inAir) {  // jump into the air
         vertVelo = 20;
         inAir    = true;
-
         // play jump sound
         jump.currentTime = 0.0;
         jump.play();
@@ -171,7 +180,15 @@ function update() {
         vertVelo--;
         playerY-=vertVelo * updScale;
     } else {    // player is on the ground
-        vertVelo = 0;
+        if (currentLevel.obstacles.find(obstacle => obstacle.jump && playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY + playerSize <= obstacle.boundY.min && playerY + playerSize - vertVelo * updScale <= obstacle.boundY.min)) {
+            vertVelo = 30;  // bounce
+            // play boing sound
+            boing.currentTime = 0.0;
+            boing.play();
+        } else {
+            vertVelo = 0;
+
+        }
     }
 
     // check for if player is touching lava

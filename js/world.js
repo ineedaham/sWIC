@@ -7,18 +7,21 @@ import {
 
 // obstacle class
 export class Obstacle {
-    constructor(x, y, width, height, lava) {
+    constructor(x, y, width, height, lava, jump) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.lava = lava;
+        this.jump = jump;
         addBounds(this, this.x, this.y, this.width, this.height);
     }
 
     draw(ctx) {
         if (this.lava) {
             ctx.fillStyle = "orange";
+        } else if (this.jump) {
+            ctx.fillStyle = "green";
         } else {
             ctx.fillStyle = "black";
         }
