@@ -15,20 +15,21 @@ const keys = {};                                // keyboard input
 const music = new Audio("assets/song.wav");     // beautiful song <3
 const levels = [                                // level data - i need to move this somewhere else
     new Level(canvas, [
-        new Obstacle(200, 350, 150, 50),
-        new Obstacle(450, 350, 150, 50),
+        new Obstacle(200, 350, 150, 50, false),
+        new Obstacle(350, 350, 100, 50, true),
+        new Obstacle(450, 350, 150, 50, false),
     ]),
     new Level(canvas, [
-        new Obstacle(150, 250, 50, 50),
-        new Obstacle(300, 325, 50, 50),
-        new Obstacle(300, 175, 50, 50),
-        new Obstacle(375, 225, 50, 175),
+        new Obstacle(150, 250, 50, 50, false),
+        new Obstacle(300, 325, 50, 50, false),
+        new Obstacle(300, 175, 50, 50, false),
+        new Obstacle(375, 225, 50, 175, true),
     ]),
     new Level (canvas, [
-        new Obstacle(300, 375, 50, 25),
-        new Obstacle(400, 325, 50, 75),
-        new Obstacle(500, 275, 50, 125),
-        new Obstacle(600, 200, 50, 200),
+        new Obstacle(300, 375, 50, 25, false),
+        new Obstacle(400, 325, 50, 75, false),
+        new Obstacle(500, 275, 50, 125, false),
+        new Obstacle(600, 200, 50, 200, false),
     ])
 ];
 
@@ -107,6 +108,11 @@ function checkAir() {
     return false;
 }
 
+// this is where we will check if the player is touching lava
+function touchingLava() {
+    return currentLevel.obstacles.some(obstacle => obstacle.lava && playerX <= obstacle.boundX.max && playerX + playerSize >= obstacle.boundX.min && playerY <= obstacle.boundY.max && playerY + playerSize >= obstacle.boundY.min);
+}
+
 // this is where we will deal with keyboard input for movement
 function movement() {
     // move left if key is held, not at left canvas bound, no obstacle is in the way (no vertical overlap), obstacle right side within reach after moving, not passed left side)
@@ -139,6 +145,11 @@ function update() {
         playerY-=vertVelo * updScale;
     } else {
         vertVelo = 0;
+    }
+
+    // check for if player is touching lava
+    if (touchingLava()) {
+        initPlayer();   // BROOOOOOOOOOOOOOOOO I HATE THIS!!!!!!!!!!!!!!!!!!!!!!!!!
     }
 
     // check for level completion

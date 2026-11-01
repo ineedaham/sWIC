@@ -7,16 +7,21 @@ import {
 
 // obstacle class
 export class Obstacle {
-    constructor(x, y, width, height) {
+    constructor(x, y, width, height, lava) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.lava = lava;
         addBounds(this, this.x, this.y, this.width, this.height);
     }
 
     draw(ctx) {
-        ctx.fillStyle = "black";
+        if (this.lava) {
+            ctx.fillStyle = "orange";
+        } else {
+            ctx.fillStyle = "black";
+        }
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
