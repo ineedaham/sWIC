@@ -1,3 +1,5 @@
+// this is where world object properties are declared
+
 // dependencies
 import {
     addBounds
