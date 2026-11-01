@@ -18,6 +18,7 @@ const canvas      = document.getElementById("game");    // here is the fabeled c
 const ctx         = canvas.getContext("2d");            // get the context for our canvas. i am NOT making a 3d game
 const keys        = {};                                 // keyboard input
 const music       = new Audio("assets/song.wav");       // beautiful song <3
+const jump        = new Audio("assets/jump.wav");       // jump sound
 const levels      = [                                   // level data - i need to move this somewhere else
     new Level(canvas, [
         new Obstacle(200, 350, 150, 50, false),
@@ -148,6 +149,10 @@ function movement() {
     if ((keys["KeyW"] || keys["ArrowUp"]) && !inAir) {  // jump into the air
         vertVelo = 20;
         inAir    = true;
+
+        // play jump sound
+        jump.currentTime = 0.0;
+        jump.play();
     }
     if (keys["KeyR"]) { // reset
         initPlayer();
