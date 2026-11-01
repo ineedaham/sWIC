@@ -64,7 +64,7 @@ let vertStep = 1;       // step of velocity
 let updScale = 0.5;     // vertical velocity update scale
 let horiVelo = 5;       // horizontal velocity magnitude
 let inAir;              // player is in the air
-let currentLevelIndex = 3;
+let currentLevelIndex = 0;
 let currentLevel = levels[currentLevelIndex];
 
 // initialize player
