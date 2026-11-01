@@ -7,6 +7,9 @@ import {
 import {
     Obstacle
 } from "./world.js";
+import {
+    Text
+} from "./text.js";
 
 // constant variables
 const canvas = document.getElementById("game"); // here is the fabeled canvas!
@@ -18,18 +21,24 @@ const levels = [                                // level data - i need to move t
         new Obstacle(200, 350, 150, 50, false),
         new Obstacle(350, 350, 100, 50, true),
         new Obstacle(450, 350, 150, 50, false),
+    ], [
+        new Text("Level 1", 20, 40, 30, "Arial", "black"),
     ]),
     new Level(canvas, [
         new Obstacle(150, 250, 50, 50, false),
         new Obstacle(300, 325, 50, 50, false),
         new Obstacle(300, 175, 50, 50, false),
         new Obstacle(375, 225, 50, 175, true),
+    ], [
+        new Text("Level 2", 20, 40, 30, "Arial", "black"),
     ]),
     new Level (canvas, [
         new Obstacle(300, 375, 50, 25, false),
         new Obstacle(400, 325, 50, 75, false),
         new Obstacle(500, 275, 50, 125, false),
         new Obstacle(600, 200, 50, 200, false),
+    ], [
+        new Text("Level 3", 20, 40, 30, "Arial", "black"),
     ])
 ];
 
@@ -71,6 +80,9 @@ document.addEventListener("keyup", function(event) {
 function drawLevel() {
     for (const obstacle of currentLevel.obstacles) {    // draw obstacles
         obstacle.draw(ctx);
+    }
+    for (const text of currentLevel.texts) {
+        text.draw(ctx);
     }
     currentLevel.checkpoint.draw(ctx);
 }
@@ -149,7 +161,7 @@ function update() {
 
     // check for if player is touching lava
     if (touchingLava()) {
-        initPlayer();   // BROOOOOOOOOOOOOOOOO I HATE THIS!!!!!!!!!!!!!!!!!!!!!!!!!
+        initPlayer();
     }
 
     // check for level completion
