@@ -152,15 +152,15 @@ function update() {
 
     // gravity!
     inAir = !checkAir();
-    if (inAir) {
+    if (inAir) {    // ACCELERATION!!!
         vertVelo--;
         playerY-=vertVelo * updScale;
-    } else {
+    } else {    // player is on the ground
         vertVelo = 0;
     }
 
     // check for if player is touching lava
-    if (touchingLava()) {
+    if (touchingLava()) {   // reset player
         initPlayer();
     }
 
