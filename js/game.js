@@ -8,13 +8,12 @@ import {
     Obstacle
 } from "./world.js";
 
-// i need to format ALL of this
 // constant variables
 const canvas = document.getElementById("game"); // here is the fabeled canvas!
-const ctx = canvas.getContext("2d");    // get the context for our canvas. i am NOT making a 3d game
-const keys = {};    // keyboard input
-const music = new Audio("assets/song.wav");    // beautiful song <3
-const levels = [    // level data - i need to move this somewhere else
+const ctx = canvas.getContext("2d");            // get the context for our canvas. i am NOT making a 3d game
+const keys = {};                                // keyboard input
+const music = new Audio("assets/song.wav");     // beautiful song <3
+const levels = [                                // level data - i need to move this somewhere else
     new Level(canvas, [
         new Obstacle(200, 350, 150, 50),
         new Obstacle(450, 350, 150, 50),
