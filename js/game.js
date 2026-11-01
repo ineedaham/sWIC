@@ -1,21 +1,21 @@
 // balright! it is time... to make the platformer!!! :3
 
-// dependencies - check this out
+// dependencies
 import {
     Level
-} from "./level.js";
+} from "./level.js";    // for creating levels
 import {
     Obstacle
-} from "./world.js";
+} from "./world.js";    // for creating obstacles
 import {
     Text
-} from "./text.js";
+} from "./text.js";     // for displaying text
 
 // constant variables
 const canvas = document.getElementById("game"); // here is the fabeled canvas!
-const ctx = canvas.getContext("2d");            // get the context for our canvas. i am NOT making a 3d game
-const keys = {};                                // keyboard input
-const music = new Audio("assets/song.wav");     // beautiful song <3
+const ctx    = canvas.getContext("2d");         // get the context for our canvas. i am NOT making a 3d game
+const keys   = {};                              // keyboard input
+const music  = new Audio("assets/song.wav");    // beautiful song <3
 const levels = [                                // level data - i need to move this somewhere else
     new Level(canvas, [
         new Obstacle(200, 350, 150, 50, false),
@@ -44,22 +44,22 @@ const levels = [                                // level data - i need to move t
 
 // variables
 let playerSize = 40;    // defines how wide/tall the sprite is
-let playerX;    // player position
-let playerY;    // ^~~~~~~~~~~~~~^
-let vertVelo;   // vertical velocity
-let vertStep = 1;   // step of velocity
-let updScale = 0.5; // vertical velocity update scale
-let horiVelo = 5;   // horizontal velocity magnitude
-let inAir;  // player is in the air
+let playerX;            // player position
+let playerY;            // ^~~~~~~~~~~~~~^
+let vertVelo;           // vertical velocity
+let vertStep = 1;       // step of velocity
+let updScale = 0.5;     // vertical velocity update scale
+let horiVelo = 5;       // horizontal velocity magnitude
+let inAir;              // player is in the air
 let currentLevelIndex = 0;
 let currentLevel = levels[currentLevelIndex];
 
 // initialize player
 function initPlayer() {
-    playerX = 50;
-    playerY = canvas.height - 4 * playerSize;
     vertVelo = 0;
-    inAir = true;
+    playerX  = 50;
+    playerY  = canvas.height - 4 * playerSize;
+    inAir    = true;
 }
 
 // listen for key events for our controls
@@ -97,8 +97,8 @@ function checkAir() {
     if (vertVelo > 0) {     // if user hits obstacle on their top
         const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && (playerY - (vertVelo - vertStep) * updScale) <= obstacle.boundY.max && playerY >= obstacle.boundY.max);
         if (hitObstacle) {  // stop user
-            playerY = hitObstacle.boundY.max;
             vertVelo = 0;
+            playerY  = hitObstacle.boundY.max;
         }
     }
 
@@ -137,7 +137,7 @@ function movement() {
     }
     if ((keys["KeyW"] || keys["ArrowUp"]) && !inAir) {  // jump into the air
         vertVelo = 20;
-        inAir = true;
+        inAir    = true;
     }
     if (keys["KeyR"]) { // reset
         initPlayer();
@@ -169,8 +169,6 @@ function update() {
         currentLevelIndex++;
         currentLevel = levels[currentLevelIndex];
         initPlayer();
-    } else if (levels.length === currentLevelIndex + 1) {
-        ;
     }
 }
 
