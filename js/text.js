@@ -1,4 +1,5 @@
-// this is where our text object will be
+// this is where our text object is declared
+// we can define the font, color, and size with this class
 
 // text class
 export class Text {
