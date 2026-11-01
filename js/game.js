@@ -13,7 +13,7 @@ import {
 
 // constant variables
 const playerImage = new Image();                        // player sprite
-playerImage.src   = "/assets/player.png";               // set image source
+playerImage.src   = "/assets/player.png";               // set player sprite source image
 const canvas      = document.getElementById("game");    // here is the fabeled canvas!
 const ctx         = canvas.getContext("2d");            // get the context for our canvas. i am NOT making a 3d game
 const keys        = {};                                 // keyboard input
@@ -199,9 +199,6 @@ function draw() {
     drawLevel();
 }
 
-// first initilization
-initPlayer();
-
 // time for the code to run
 function gameLoop() {
     update();
@@ -213,5 +210,8 @@ function gameLoop() {
 // init music
 music.loop = true;
 music.play();
+
+// init player for drawing
+initPlayer();
 
 gameLoop();
