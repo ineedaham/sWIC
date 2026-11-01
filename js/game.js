@@ -12,11 +12,13 @@ import {
 } from "./text.js";     // for displaying text
 
 // constant variables
-const canvas = document.getElementById("game"); // here is the fabeled canvas!
-const ctx    = canvas.getContext("2d");         // get the context for our canvas. i am NOT making a 3d game
-const keys   = {};                              // keyboard input
-const music  = new Audio("assets/song.wav");    // beautiful song <3
-const levels = [                                // level data - i need to move this somewhere else
+const playerImage = new Image();                        // player sprite
+playerImage.src   = "/assets/player.png";               // set image source
+const canvas      = document.getElementById("game");    // here is the fabeled canvas!
+const ctx         = canvas.getContext("2d");            // get the context for our canvas. i am NOT making a 3d game
+const keys        = {};                                 // keyboard input
+const music       = new Audio("assets/song.wav");       // beautiful song <3
+const levels      = [                                   // level data - i need to move this somewhere else
     new Level(canvas, [
         new Obstacle(200, 350, 150, 50, false),
         new Obstacle(350, 350, 100, 50, true),
@@ -183,8 +185,7 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // draw our player... jynxzi <3
-    ctx.fillStyle = "red";
-    ctx.fillRect(playerX, playerY, playerSize, playerSize);
+    ctx.drawImage(playerImage, playerX, playerY, playerSize, playerSize);
 
     // draw the current level
     drawLevel();
