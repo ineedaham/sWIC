@@ -78,6 +78,14 @@ document.addEventListener("keyup", function(event) {
     keys[event.code] = false;
 });
 
+// this is where we can draw the player sprite
+function drawPlayer() {
+    // check if the player sprite is fully loaded
+    if (playerImage.complete) { // draw the player sprite
+        ctx.drawImage(playerImage, playerX, playerY, playerSize, playerSize);
+    }
+}
+
 // draw levels
 function drawLevel() {
     for (const obstacle of currentLevel.obstacles) {    // draw obstacles
@@ -185,7 +193,7 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // draw our player... jynxzi <3
-    ctx.drawImage(playerImage, playerX, playerY, playerSize, playerSize);
+    drawPlayer();
 
     // draw the current level
     drawLevel();
