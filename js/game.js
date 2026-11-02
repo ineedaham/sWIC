@@ -129,7 +129,7 @@ function initPlayer() {
     }
 }
 
-// update stopwatch
+// update stopwatch and recalculate refresh rate
 function updWatch(timestamp) {
     if (stopwatchLastFrame !== undefined && !paused) {
         stopwatchDelta = timestamp - stopwatchLastFrame;
@@ -276,7 +276,7 @@ function movement() {
 
 // this is where game updates (eg physics, level progression) will be calc'd
 // (just so you know, calc is short for calculator)
-function update(timestamp) {
+function update() {
     // let the player move
     movement();
 
@@ -351,7 +351,7 @@ function gameLoop(timestamp) {
 
     // update and draw game
     if (!paused) {
-        update(timestamp);
+        update();
         draw();
     }
 

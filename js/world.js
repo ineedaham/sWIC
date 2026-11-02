@@ -50,6 +50,7 @@ export class Checkpoint {
     }
 }
 
+// key class
 export class Key {
     constructor(x, y, width, height, collected) {
         this.x = x;
