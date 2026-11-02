@@ -20,7 +20,7 @@ import {
 // constant variables
 const stopwatchText = new Text("0.00s", 20, 80, 30, "Arial", "black");  // text to display stopwatch
 const playerImage   = new Image();                                      // player sprite
-playerImage.src     = "assets/player.png";                             // set player sprite source image
+playerImage.src     = "assets/player.png";                              // set player sprite source image
 const canvas        = document.getElementById("game");                  // here is the fabeled canvas!
 const ctx           = canvas.getContext("2d");                          // get the context for our canvas. i am NOT making a 3d game
 const keys          = {};                                               // keyboard input
@@ -357,8 +357,6 @@ function gameLoop(timestamp) {
 
     requestAnimationFrame(gameLoop);
 }
-
-
 
 // init music
 music.loop = true;
