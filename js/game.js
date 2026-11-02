@@ -8,8 +8,14 @@ import {
     Obstacle
 } from "./world.js";    // for creating obstacles
 import {
+    Key
+} from "./world.js";    // for key properties
+import {
     Text
 } from "./text.js";     // for displaying text
+import {
+    addBounds
+} from "./addBounds.js";
 
 // constant variables
 const playerImage = new Image();                        // player sprite
@@ -20,52 +26,86 @@ const keys        = {};                                 // keyboard input
 const music       = new Audio("assets/song.wav");       // beautiful song <3
 const jump        = new Audio("assets/jump.wav");       // jump sound
 const boing       = new Audio("assets/boing.wav");      // jump obstacle sound
-const levels      = [                                   // level data - i need to move this somewhere else
-    new Level(canvas, [
-        new Obstacle(200, 350, 150, 50, false, false),
-        new Obstacle(350, 350, 100, 50, true, false),
-        new Obstacle(450, 350, 150, 50, false, false),
+const levels      = [];                                 // level data
+
+// this is where we create levels
+function level(obstacles, texts, keyCoords = []) {
+    // create new level instance
+    const level = new Level(canvas, obstacles, texts);
+    // phase obstacles filtered
+    const phase = level.obstacles.filter(obstacle => obstacle.phase);
+
+    // generate keys: loop through each phase obstacle, and assign a key with unique coordinates to it with a matching index
+    phase.forEach((phase, idx) => {
+        const [x, y] = keyCoords[idx];
+        level.keys.push(new Key(x, y, 25, 25));
+    });
+
+    return level;
+}
+
+/* level data */ {
+    levels[0] = level([
+        new Obstacle(200, 350, 150, 50, false, false, false),
+        new Obstacle(350, 350, 100, 50, true, false, false),
+        new Obstacle(450, 350, 150, 50, false, false, false),
     ], [
         new Text("Level 1", 20, 40, 30, "Arial", "black"),
         new Text("Lava - deadly", 312, 325, 30, "Arial", "black"),
-    ]),
-    new Level(canvas, [
-        new Obstacle(150, 250, 50, 50, false, false),
-        new Obstacle(300, 325, 50, 50, false, false),
-        new Obstacle(300, 175, 50, 50, false, false),
-        new Obstacle(375, 225, 50, 175, true, false),
+    ], []);
+    levels[1] = level([
+        new Obstacle(150, 250, 50, 50, false, false, false),
+        new Obstacle(300, 325, 50, 50, false, false, false),
+        new Obstacle(300, 175, 50, 50, false, false, false),
+        new Obstacle(375, 225, 50, 175, true, false, false),
     ], [
         new Text("Level 2", 20, 40, 30, "Arial", "black"),
-    ]),
-    new Level (canvas, [
-        new Obstacle(300, 375, 50, 25, false, false),
-        new Obstacle(400, 325, 50, 75, false, false),
-        new Obstacle(500, 275, 50, 125, false, false),
-        new Obstacle(600, 200, 50, 200, false, false),
+    ], []);
+    levels[2] = level([
+        new Obstacle(300, 375, 50, 25, false, false, false),
+        new Obstacle(400, 325, 50, 75, false, false, false),
+        new Obstacle(500, 275, 50, 125, false, false, false),
+        new Obstacle(600, 200, 50, 200, false, false, false),
     ], [
         new Text("Level 3", 20, 40, 30, "Arial", "black"),
-    ]),
-    new Level (canvas, [
-        new Obstacle(0, 350, 250, 50, false, false),
-        new Obstacle(250, 350, 100, 50, false, true),
-        new Obstacle(350, 350, 100, 50, true, false),
+    ], []);
+    levels[3] = level([
+        new Obstacle(0, 350, 250, 50, false, false, false),
+        new Obstacle(250, 350, 100, 50, false, true, false),
+        new Obstacle(350, 350, 100, 50, true, false, false),
     ], [
         new Text("Level 4", 20, 40, 30, "Arial", "black"),
         new Text("Jump obstacle", 200, 325, 30, "Arial", "black"),
-    ])
-];
+    ], [])
+    levels[4] = level([
+        new Obstacle(200, 350, 100, 50, false, false, false),
+        new Obstacle(500, 0, 50, 400, false, false, true),
+        new Obstacle(0, 295, 200, 10, false, false, false),
+        new Obstacle(200, 240, 125, 5, false, false, false),
+        new Obstacle(325, 240, 50, 5, true, false, false),
+        new Obstacle(375, 240, 125, 5, false, false, false),
+        new Obstacle(200, 245, 300, 5, false, false, false),
+        new Obstacle(450, 250, 50, 150, true, false, false)
+    ], [
+        new Text("Level 5", 20, 40, 30, "Arial", "black"),
+        new Text("Key", 75, 373, 40, 30, "Arial", "black"),
+        new Text("Phase obstacle", 575, 170, 40, 30, "Arial", "black"),
+    ], [
+        [25, 350],
+    ]);
+}
 
 // variables
-let playerSize = 40;    // defines how wide/tall the sprite is
-let playerX;            // player position
-let playerY;            // ^~~~~~~~~~~~~~^
-let vertVelo;           // vertical velocity
-let vertStep = 1;       // step of velocity
-let updScale = 0.5;     // vertical velocity update scale
-let horiVelo = 5;       // horizontal velocity magnitude
-let inAir;              // player is in the air
 let currentLevelIndex = 0;
-let currentLevel = levels[currentLevelIndex];
+let currentLevel      = levels[currentLevelIndex];
+let playerSize        = 40;     // defines how wide/tall the sprite is
+let playerX;                    // player position
+let playerY;                    // ^~~~~~~~~~~~~~^
+let vertVelo;                   // vertical velocity
+let vertStep          = 1;      // step of velocity
+let updScale          = 0.5;    // vertical velocity update scale
+let horiVelo          = 5;      // horizontal velocity magnitude
+let inAir;                      // player is in the air
 
 // initialize player
 function initPlayer() {
@@ -73,6 +113,14 @@ function initPlayer() {
     playerX  = 50;
     playerY  = canvas.height - 4 * playerSize;
     inAir    = true;
+    for (const key of currentLevel.keys) {  // reset level progress
+        // player loses key
+        key.collected = false;
+        // validate bounds for phase obstacle, so player cannot pass through it, until they collect the key again
+        currentLevel.obstacles.filter(obstacle => obstacle.phase).forEach(phase => {
+            addBounds(phase, phase.x, phase.y, phase.width, phase.height);
+        });
+    }
 }
 
 // listen for key events for our controls
@@ -104,6 +152,9 @@ function drawLevel() {
     }
     for (const text of currentLevel.texts) {
         text.draw(ctx);
+    }
+    for (const key of currentLevel.keys) {
+        key.draw(ctx);
     }
     currentLevel.checkpoint.draw(ctx);
 }
@@ -141,9 +192,19 @@ function checkAir() {
     return false;
 }
 
-// this is where we will check if the player is touching lava
-function touchingLava() {
-    return currentLevel.obstacles.some(obstacle => obstacle.lava && playerX <= obstacle.boundX.max && playerX + playerSize >= obstacle.boundX.min && playerY <= obstacle.boundY.max && playerY + playerSize >= obstacle.boundY.min);
+// this is where we will check if the player is touching an obstacle
+function collisionNotBottom(type) {
+    return currentLevel.obstacles.some(obstacle => obstacle[type] && playerX <= obstacle.boundX.max && playerX + playerSize >= obstacle.boundX.min && playerY <= obstacle.boundY.max && playerY + playerSize >= obstacle.boundY.min);
+}
+
+// this is where we will check if the player is head colliding an obstacle
+function allCollisions(type) {
+    return currentLevel.obstacles.some(obstacle => obstacle[type] && playerX <= obstacle.boundX.max && playerX + playerSize >= obstacle.boundX.min && ((vertVelo > 0 && playerY >= obstacle.boundY.max && (playerY - (vertVelo - vertStep) * updScale) <= obstacle.boundY.max) || (vertVelo <= 0 && playerY + playerSize <= obstacle.boundY.min && (playerY - (vertVelo - vertStep) * updScale) + playerSize >= obstacle.boundY.min) || (playerY + playerSize > obstacle.boundY.min && playerY < obstacle.boundY.max)));
+}
+
+// this is where we will check if the player has collected a key
+function collectKey() {
+    return currentLevel.keys.findIndex(key => playerX <= key.boundX.max && playerX + playerSize >= key.boundX.min && playerY <= key.boundY.max && playerY + playerSize >= key.boundY.min);
 }
 
 // this is where we will deal with keyboard input for movement
@@ -174,13 +235,16 @@ function update() {
     // let the player move
     movement();
 
+    // get ready for possible key collection
+    let keyIdx = collectKey();
+
     // gravity!
     inAir = !checkAir();
     if (inAir) {    // ACCELERATION!!!
         vertVelo--;
         playerY-=vertVelo * updScale;
     } else {    // player is on the ground
-        if (currentLevel.obstacles.find(obstacle => obstacle.jump && playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY + playerSize <= obstacle.boundY.min && playerY + playerSize - vertVelo * updScale <= obstacle.boundY.min)) {
+        if (collisionNotBottom("jump")) {
             vertVelo = 30;  // bounce
             // play boing sound
             boing.currentTime = 0.0;
@@ -192,8 +256,13 @@ function update() {
     }
 
     // check for if player is touching lava
-    if (touchingLava()) {   // reset player
+    if (allCollisions("lava")) { // reset player
         initPlayer();
+    }
+    if (keyIdx !== -1) {
+        currentLevel.keys[keyIdx].collected = true;
+        // delete bounds of phase obstacle, so player can pass through it
+        addBounds(currentLevel.obstacles.filter(obstacle => obstacle.phase)[keyIdx], 0, 0, 0, 0);
     }
 
     // check for level completion

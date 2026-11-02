@@ -12,6 +12,7 @@ export class Level {
         this.obstacles = obstacles;
         this.checkpoint = new Checkpoint(canvas);
         this.texts = texts;
+        this.keys = [];
         addBounds(this, this.x, this.y, this.width, this.height);
     }
 }
