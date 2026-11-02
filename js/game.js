@@ -18,15 +18,16 @@ import {
 } from "./addBounds.js";
 
 // constant variables
-const playerImage = new Image();                        // player sprite
-playerImage.src   = "/assets/player.png";               // set player sprite source image
-const canvas      = document.getElementById("game");    // here is the fabeled canvas!
-const ctx         = canvas.getContext("2d");            // get the context for our canvas. i am NOT making a 3d game
-const keys        = {};                                 // keyboard input
-const music       = new Audio("assets/song.wav");       // beautiful song <3
-const jump        = new Audio("assets/jump.wav");       // jump sound
-const boing       = new Audio("assets/boing.wav");      // jump obstacle sound
-const levels      = [];                                 // level data
+const stopwatchText = new Text("0.00s", 20, 80, 30, "Arial", "black");  // text to display stopwatch
+const playerImage   = new Image();                                      // player sprite
+playerImage.src     = "/assets/player.png";                             // set player sprite source image
+const canvas        = document.getElementById("game");                  // here is the fabeled canvas!
+const ctx           = canvas.getContext("2d");                          // get the context for our canvas. i am NOT making a 3d game
+const keys          = {};                                               // keyboard input
+const music         = new Audio("assets/song.wav");                     // beautiful song <3
+const jump          = new Audio("assets/jump.wav");                     // jump sound
+const boing         = new Audio("assets/boing.wav");                    // jump obstacle sound
+const levels        = [];                                               // level data
 
 // this is where we create levels
 function level(obstacles, texts, keyCoords = []) {
@@ -102,10 +103,15 @@ let playerSize        = 40;     // defines how wide/tall the sprite is
 let playerX;                    // player position
 let playerY;                    // ^~~~~~~~~~~~~~^
 let vertVelo;                   // vertical velocity
-let vertStep          = 1;      // step of velocity
-let updScale          = 0.5;    // vertical velocity update scale
-let horiVelo          = 5;      // horizontal velocity magnitude
+let updScale          = 0;      // vertical velocity update scale
+let horiVelo          = 0;      // horizontal velocity magnitude
 let inAir;                      // player is in the air
+let stopwatchFrames   = 0;      // total frames elapsed
+let stopwatchTime     = 0;      // total time elapsed
+let stopwatchLastFrame;         // timestamp of last frame
+let stopwatchDelta;             // time between previous and current frames
+let refRate           = 0;      // display refresh rate
+let paused            = false;  // stopwatch is paused
 
 // initialize player
 function initPlayer() {
@@ -123,6 +129,19 @@ function initPlayer() {
     }
 }
 
+// update stopwatch
+function updWatch(timestamp) {
+    if (stopwatchLastFrame !== undefined && !paused) {
+        stopwatchDelta = timestamp - stopwatchLastFrame;
+        stopwatchTime+= stopwatchDelta / 1000;
+        stopwatchFrames++;
+
+        // calculate refresh rate
+        refRate = 1000 / stopwatchDelta;
+    }
+    stopwatchLastFrame = timestamp;
+}
+
 // listen for key events for our controls
 document.addEventListener("keydown", function(event) {
     keys[event.code] = true;
@@ -130,6 +149,16 @@ document.addEventListener("keydown", function(event) {
     // keep the page from scrolling
     if (event.code === "ArrowUp" || event.code === "ArrowDown") {
         event.preventDefault();
+    }
+
+    // stop broken pausing
+    if (event.repeat) {
+        return;
+    }
+
+    // pause the game and stopwatch
+    if (event.code === "KeyP") {
+        paused = !paused;
     }
 });
 
@@ -159,6 +188,12 @@ function drawLevel() {
     currentLevel.checkpoint.draw(ctx);
 }
 
+// draw stopwatch
+function drawWatch() {
+    stopwatchText.text = stopwatchTime.toFixed(2) + "s";
+    stopwatchText.draw(ctx);
+}
+
 // check for checkpoint reached
 function checkpoint() {
     return (playerX + playerSize >= currentLevel.checkpoint.boundX.min && playerX <= currentLevel.checkpoint.boundX.max && playerY + playerSize >= currentLevel.checkpoint.boundY.min && playerY <= currentLevel.checkpoint.boundY.max);
@@ -167,7 +202,7 @@ function checkpoint() {
 // check for if player is in air
 function checkAir() {
     if (vertVelo > 0) {     // if user hits obstacle on their top
-        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && (playerY - (vertVelo - vertStep) * updScale) <= obstacle.boundY.max && playerY >= obstacle.boundY.max);
+        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY - vertVelo * updScale <= obstacle.boundY.max && playerY >= obstacle.boundY.max);
         if (hitObstacle) {  // stop user
             vertVelo = 0;
             playerY  = hitObstacle.boundY.max;
@@ -176,7 +211,7 @@ function checkAir() {
 
     if (vertVelo <= 0) {    // only check if player is falling or still
         // only look for an obstacle if player overlaps horizontally, player bottom is at or above the top, and player bottom will pass/reach the top this frame
-        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY + playerSize <= obstacle.boundY.min && (playerY - (vertVelo - vertStep) * updScale) + playerSize >= obstacle.boundY.min);
+        const hitObstacle = currentLevel.obstacles.find(obstacle => playerX + playerSize > obstacle.boundX.min && playerX < obstacle.boundX.max && playerY + playerSize <= obstacle.boundY.min && (playerY - vertVelo * updScale) + playerSize >= obstacle.boundY.min);
         if (hitObstacle) {  // on an obstacle
             playerY = hitObstacle.boundY.min - playerSize;
             return true;
@@ -184,7 +219,7 @@ function checkAir() {
     }
 
     // check for if player will land on the ground
-    if ((playerY - (vertVelo - vertStep) * updScale) > canvas.height - playerSize) { // on the ground
+    if ((playerY - vertVelo * updScale) > canvas.height - playerSize) { // on the ground
         playerY = canvas.height - playerSize;
         return true;
     }
@@ -192,30 +227,40 @@ function checkAir() {
     return false;
 }
 
-// this is where we will check if the player is touching an obstacle
+// check if the player is touching an obstacle
 function collisionNotBottom(type) {
     return currentLevel.obstacles.some(obstacle => obstacle[type] && playerX <= obstacle.boundX.max && playerX + playerSize >= obstacle.boundX.min && playerY <= obstacle.boundY.max && playerY + playerSize >= obstacle.boundY.min);
 }
 
-// this is where we will check if the player is head colliding an obstacle
+// check if the player is head colliding an obstacle
 function allCollisions(type) {
-    return currentLevel.obstacles.some(obstacle => obstacle[type] && playerX <= obstacle.boundX.max && playerX + playerSize >= obstacle.boundX.min && ((vertVelo > 0 && playerY >= obstacle.boundY.max && (playerY - (vertVelo - vertStep) * updScale) <= obstacle.boundY.max) || (vertVelo <= 0 && playerY + playerSize <= obstacle.boundY.min && (playerY - (vertVelo - vertStep) * updScale) + playerSize >= obstacle.boundY.min) || (playerY + playerSize > obstacle.boundY.min && playerY < obstacle.boundY.max)));
+    return currentLevel.obstacles.some(obstacle => obstacle[type] && playerX <= obstacle.boundX.max && playerX + playerSize >= obstacle.boundX.min && ((vertVelo > 0 && playerY >= obstacle.boundY.max && (playerY - vertVelo * updScale) <= obstacle.boundY.max) || (vertVelo <= 0 && playerY + playerSize <= obstacle.boundY.min && (playerY - vertVelo * updScale) + playerSize >= obstacle.boundY.min) || (playerY + playerSize > obstacle.boundY.min && playerY < obstacle.boundY.max)));
 }
 
-// this is where we will check if the player has collected a key
+// check if the player has collected a key
 function collectKey() {
     return currentLevel.keys.findIndex(key => playerX <= key.boundX.max && playerX + playerSize >= key.boundX.min && playerY <= key.boundY.max && playerY + playerSize >= key.boundY.min);
 }
 
-// this is where we will deal with keyboard input for movement
+// deal with keyboard input for movement
 function movement() {
     // move left if key is held, not at left canvas bound, no obstacle is in the way (no vertical overlap), obstacle right side within reach after moving, not passed left side)
-    if ((keys["KeyA"] || keys["ArrowLeft"]) && !currentLevel.obstacles.some(obstacle => playerY + playerSize > obstacle.boundY.min && playerY < obstacle.boundY.max && playerX - horiVelo < obstacle.boundX.max && playerX > obstacle.boundX.min)) {
-        playerX = Math.max(0, playerX - horiVelo);  // player can't leave canvas bounds
+    if (keys["KeyA"] || keys["ArrowLeft"]) {
+        const hitObstacle = currentLevel.obstacles.find(obstacle => !obstacle.lava && playerY + playerSize > obstacle.boundY.min && playerY < obstacle.boundY.max && playerX - horiVelo < obstacle.boundX.max && playerX >= obstacle.boundX.max);
+        if (hitObstacle) {  // player hit obstacle on left side
+            playerX = hitObstacle.boundX.max;
+        } else {
+            playerX = Math.max(0, playerX - horiVelo);  // player can't leave canvas bounds
+        }
     }
     // move right if key is held, not at right canvas bound, no obstacle is in the way (no vertical overlap), obstacle left side within reach after moving, not passed right side)
-    if ((keys["KeyD"] || keys["ArrowRight"]) && !currentLevel.obstacles.some(obstacle => playerY < obstacle.boundY.max && playerY > obstacle.boundY.min - playerSize && playerX + horiVelo > obstacle.boundX.min - playerSize && playerX < obstacle.boundX.max)) {
-        playerX = Math.min(canvas.width - playerSize, playerX + horiVelo);  // same as above
+    if (keys["KeyD"] || keys["ArrowRight"]) {
+        const hitObstacle = currentLevel.obstacles.find(obstacle => !obstacle.lava && playerY < obstacle.boundY.max && playerY > obstacle.boundY.min - playerSize && playerX + horiVelo > obstacle.boundX.min - playerSize && playerX + playerSize <= obstacle.boundX.min);
+        if (hitObstacle) {  // player hit obstacle on right side
+            playerX = hitObstacle.boundX.min - playerSize;
+        } else {
+            playerX = Math.min(canvas.width - playerSize, playerX + horiVelo);  // same as above
+        }
     }
     if ((keys["KeyW"] || keys["ArrowUp"]) && !inAir) {  // jump into the air
         vertVelo = 20;
@@ -231,7 +276,7 @@ function movement() {
 
 // this is where game updates (eg physics, level progression) will be calc'd
 // (just so you know, calc is short for calculator)
-function update() {
+function update(timestamp) {
     // let the player move
     movement();
 
@@ -241,7 +286,6 @@ function update() {
     // gravity!
     inAir = !checkAir();
     if (inAir) {    // ACCELERATION!!!
-        vertVelo--;
         playerY-=vertVelo * updScale;
     } else {    // player is on the ground
         if (collisionNotBottom("jump")) {
@@ -253,6 +297,13 @@ function update() {
             vertVelo = 0;
 
         }
+    }
+
+    // update player movement values
+    if (refRate > 0) {
+        updScale = 30 / refRate;
+        horiVelo = 5 * 60 / refRate;
+        vertVelo = vertVelo - (60 / refRate);
     }
 
     // check for if player is touching lava
@@ -288,15 +339,26 @@ function draw() {
 
     // draw the current level
     drawLevel();
+
+    // draw the stopwatch
+    drawWatch();
 }
 
 // time for the code to run
-function gameLoop() {
-    update();
-    draw();
+function gameLoop(timestamp) {
+    // update stopwatch
+    updWatch(timestamp);
+
+    // update and draw game
+    if (!paused) {
+        update(timestamp);
+        draw();
+    }
 
     requestAnimationFrame(gameLoop);
 }
+
+
 
 // init music
 music.loop = true;
@@ -305,4 +367,4 @@ music.play();
 // init player for drawing
 initPlayer();
 
-gameLoop();
+requestAnimationFrame(gameLoop);
