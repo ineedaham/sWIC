@@ -3,19 +3,19 @@
 // dependencies
 import {
     Level
-} from "./level.js";    // for creating levels
+} from "./level.js";        // for creating levels
 import {
     Obstacle
-} from "./world.js";    // for creating obstacles
+} from "./world.js";        // for creating obstacles
 import {
     Key
-} from "./world.js";    // for key properties
+} from "./world.js";        // for key properties
 import {
     Text
-} from "./text.js";     // for displaying text
+} from "./text.js";         // for displaying text
 import {
     addBounds
-} from "./addBounds.js";
+} from "./addBounds.js";    // for setting bounds of phase obstacles
 
 // constant variables
 const stopwatchText = new Text("0.00s", 20, 80, 30, "Arial", "black");  // text to display stopwatch
