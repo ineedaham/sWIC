@@ -20,3 +20,9 @@ p { /*here is the styling for the paragraph elements*/
     line-height: 1.5;           /*spacing between lines*/
     margin-bottom: 20px;        /*some space after each paragraph*/
 }
+
+footer {
+    color:rgb(95, 95, 95);
+    padding: 1rem;
+    text-align: center;
+}
